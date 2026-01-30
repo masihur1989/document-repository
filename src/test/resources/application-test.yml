@@ -1,0 +1,35 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: document-repository-test
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/docrepo-test
+      auto-index-creation: true
+
+minio:
+  endpoint: http://localhost:9000
+  access-key: minioadmin
+  secret-key: minioadmin
+  bucket-name: test-documents
+
+jwt:
+  secret: dGhpcyBpcyBhIHZlcnkgbG9uZyBzZWNyZXQga2V5IGZvciBqd3QgdG9rZW4gZ2VuZXJhdGlvbiB0aGF0IGlzIGF0IGxlYXN0IDI1NiBiaXRz
+  expiration-ms: 86400000
+
+logging:
+  level:
+    root: WARN
+    com.docrepo: DEBUG
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

@@ -1,13 +1,13 @@
 server:
   port: 8080
-  servlet:
-    multipart:
-      max-file-size: 100MB
-      max-request-size: 100MB
 
 spring:
   application:
     name: document-repository
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
   data:
     mongodb:
       uri: ${MONGODB_URI:mongodb://localhost:27017/docrepo}

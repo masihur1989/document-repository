@@ -5,6 +5,14 @@ import com.docrepo.dto.DocumentUpdateRequest;
 import com.docrepo.model.Document;
 import com.docrepo.security.UserPrincipal;
 import com.docrepo.service.DocumentService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,23 +39,30 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/documents")
 @RequiredArgsConstructor
+@Tag(name = "Documents", description = "Document management API for upload, download, and metadata operations")
+@SecurityRequirement(name = "bearerAuth")
 public class DocumentController {
 
     private final DocumentService documentService;
 
-    /**
-     * Upload a new document.
-     * Access: ADMIN, EDITOR
-     * 
-     * Streams file directly to MinIO for performance.
-     */
+    @Operation(summary = "Upload a new document", 
+            description = "Upload a document file with optional tags and description. Streams directly to MinIO for performance.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Document uploaded successfully",
+                    content = @Content(schema = @Schema(implementation = DocumentDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid file or empty file"),
+            @ApiResponse(responseCode = "403", description = "Access denied - requires ADMIN or EDITOR role")
+    })
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     public ResponseEntity<DocumentDTO> uploadDocument(
+            @Parameter(description = "File to upload", required = true)
             @RequestParam("file") MultipartFile file,
+            @Parameter(description = "List of tags for the document")
             @RequestParam(value = "tags", required = false) List<String> tags,
+            @Parameter(description = "Description of the document")
             @RequestParam(value = "description", required = false) String description,
-            @AuthenticationPrincipal UserPrincipal userPrincipal) throws IOException {
+            @Parameter(hidden = true) @AuthenticationPrincipal UserPrincipal userPrincipal) throws IOException {
 
         log.info("Upload request: filename={}, size={}, user={}", 
                 file.getOriginalFilename(), file.getSize(), userPrincipal.getUsername());
@@ -67,85 +82,78 @@ public class DocumentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(document);
     }
 
-    /**
-     * List all documents with pagination.
-     * Access: All authenticated users
-     * 
-     * Default: 20 items per page, sorted by createdAt descending
-     */
+    @Operation(summary = "List all documents", 
+            description = "Get paginated list of all documents. Default: 20 items per page, sorted by createdAt descending.")
+    @ApiResponse(responseCode = "200", description = "Documents retrieved successfully")
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<DocumentDTO>> listDocuments(
+            @Parameter(description = "Pagination parameters") 
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
         Page<DocumentDTO> documents = documentService.listDocuments(pageable);
         return ResponseEntity.ok(documents);
     }
 
-    /**
-     * List documents by owner.
-     * Access: All authenticated users
-     */
+    @Operation(summary = "List documents by owner", description = "Get paginated list of documents owned by a specific user")
+    @ApiResponse(responseCode = "200", description = "Documents retrieved successfully")
     @GetMapping("/owner/{ownerId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<DocumentDTO>> listDocumentsByOwner(
-            @PathVariable String ownerId,
+            @Parameter(description = "Owner user ID") @PathVariable String ownerId,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
         Page<DocumentDTO> documents = documentService.listDocumentsByOwner(ownerId, pageable);
         return ResponseEntity.ok(documents);
     }
 
-    /**
-     * List documents by tag.
-     * Access: All authenticated users
-     */
+    @Operation(summary = "List documents by tag", description = "Get paginated list of documents with a specific tag")
+    @ApiResponse(responseCode = "200", description = "Documents retrieved successfully")
     @GetMapping("/tag/{tag}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<DocumentDTO>> listDocumentsByTag(
-            @PathVariable String tag,
+            @Parameter(description = "Tag to filter by") @PathVariable String tag,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
         Page<DocumentDTO> documents = documentService.listDocumentsByTag(tag, pageable);
         return ResponseEntity.ok(documents);
     }
 
-    /**
-     * Search documents by filename or description.
-     * Access: All authenticated users
-     */
+    @Operation(summary = "Search documents", description = "Search documents by filename or description")
+    @ApiResponse(responseCode = "200", description = "Search results retrieved successfully")
     @GetMapping("/search")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<DocumentDTO>> searchDocuments(
-            @RequestParam("q") String searchTerm,
+            @Parameter(description = "Search term to match against filename or description") @RequestParam("q") String searchTerm,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
         Page<DocumentDTO> documents = documentService.searchDocuments(searchTerm, pageable);
         return ResponseEntity.ok(documents);
     }
 
-    /**
-     * Get document metadata by ID.
-     * Access: All authenticated users
-     * 
-     * Response is cached for performance.
-     */
+    @Operation(summary = "Get document metadata", description = "Get document metadata by ID. Response is cached for performance.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Document metadata retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Document not found")
+    })
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<DocumentDTO> getDocument(@PathVariable String id) {
+    public ResponseEntity<DocumentDTO> getDocument(
+            @Parameter(description = "Document ID") @PathVariable String id) {
         DocumentDTO document = documentService.getDocument(id);
         return ResponseEntity.ok(document);
     }
 
-    /**
-     * Download document file.
-     * Access: All authenticated users
-     * 
-     * Streams file directly from MinIO for performance (zero-copy).
-     */
+    @Operation(summary = "Download document file", 
+            description = "Download the document file. Streams directly from MinIO for performance (zero-copy).")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "File downloaded successfully"),
+            @ApiResponse(responseCode = "404", description = "Document not found")
+    })
     @GetMapping("/{id}/download")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Resource> downloadDocument(@PathVariable String id) {
+    public ResponseEntity<Resource> downloadDocument(
+            @Parameter(description = "Document ID") @PathVariable String id) {
         Document document = documentService.getDocumentEntity(id);
         InputStream inputStream = documentService.downloadDocument(id);
 
@@ -161,14 +169,17 @@ public class DocumentController {
                 .body(resource);
     }
 
-    /**
-     * Update document metadata.
-     * Access: ADMIN (any document) or EDITOR (own documents only)
-     */
+    @Operation(summary = "Update document metadata", 
+            description = "Update document metadata. ADMIN can update any document, EDITOR can only update own documents.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Document updated successfully"),
+            @ApiResponse(responseCode = "403", description = "Access denied"),
+            @ApiResponse(responseCode = "404", description = "Document not found")
+    })
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or @documentSecurity.isOwner(#id, authentication)")
     public ResponseEntity<DocumentDTO> updateDocument(
-            @PathVariable String id,
+            @Parameter(description = "Document ID") @PathVariable String id,
             @Valid @RequestBody DocumentUpdateRequest updateRequest) {
 
         log.info("Update request: documentId={}", id);
@@ -176,28 +187,28 @@ public class DocumentController {
         return ResponseEntity.ok(document);
     }
 
-    /**
-     * Delete a document.
-     * Access: ADMIN (any document) or EDITOR (own documents only)
-     * 
-     * Deletes from both MinIO (file) and MongoDB (metadata).
-     */
+    @Operation(summary = "Delete a document", 
+            description = "Delete a document from both MinIO (file) and MongoDB (metadata). ADMIN can delete any document, EDITOR can only delete own documents.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Document deleted successfully"),
+            @ApiResponse(responseCode = "403", description = "Access denied"),
+            @ApiResponse(responseCode = "404", description = "Document not found")
+    })
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or @documentSecurity.isOwner(#id, authentication)")
-    public ResponseEntity<Void> deleteDocument(@PathVariable String id) {
+    public ResponseEntity<Void> deleteDocument(
+            @Parameter(description = "Document ID") @PathVariable String id) {
         log.info("Delete request: documentId={}", id);
         documentService.deleteDocument(id);
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * Get my documents (current user's documents).
-     * Access: All authenticated users
-     */
+    @Operation(summary = "Get my documents", description = "Get paginated list of documents owned by the current authenticated user")
+    @ApiResponse(responseCode = "200", description = "Documents retrieved successfully")
     @GetMapping("/my")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<DocumentDTO>> getMyDocuments(
-            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @Parameter(hidden = true) @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
         Page<DocumentDTO> documents = documentService.listDocumentsByOwner(userPrincipal.getId(), pageable);

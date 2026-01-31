@@ -77,10 +77,10 @@ public class DocumentController {
             @RequestParam String contentType,
             @RequestParam Long size,
             @AuthenticationPrincipal UserPrincipal user) {
-        
+
         // Generate unique storage key
         String storageKey = UUID.randomUUID() + "-" + sanitizeFilename(filename);
-        
+
         // Generate presigned URL valid for 1 hour
         String presignedUrl = minioClient.getPresignedObjectUrl(
             GetPresignedObjectUrlArgs.builder()
@@ -91,9 +91,9 @@ public class DocumentController {
                 .extraHeaders(Map.of("Content-Type", contentType))
                 .build()
         );
-        
+
         return ResponseEntity.ok(new PresignedUrlResponse(
-            presignedUrl, 
+            presignedUrl,
             storageKey,
             Instant.now().plus(1, ChronoUnit.HOURS)
         ));
@@ -104,7 +104,7 @@ public class DocumentController {
     public ResponseEntity<DocumentDTO> confirmUpload(
             @Valid @RequestBody UploadConfirmRequest request,
             @AuthenticationPrincipal UserPrincipal user) {
-        
+
         // Verify file exists in MinIO
         StatObjectResponse stat = minioClient.statObject(
             StatObjectArgs.builder()
@@ -112,7 +112,7 @@ public class DocumentController {
                 .object(request.getStorageKey())
                 .build()
         );
-        
+
         // Create metadata record
         Document document = Document.builder()
             .filename(request.getFilename())
@@ -125,7 +125,7 @@ public class DocumentController {
             .tags(request.getTags())
             .description(request.getDescription())
             .build();
-        
+
         Document saved = documentRepository.save(document);
         return ResponseEntity.status(HttpStatus.CREATED).body(toDTO(saved));
     }
@@ -168,7 +168,7 @@ async function uploadLargeFile(file, tags, description) {
             description
         })
     });
-    
+
     return await confirmResponse.json();
 }
 ```
@@ -259,10 +259,10 @@ public class ChunkedUploadController {
     public ResponseEntity<ChunkedUploadInitResponse> initUpload(
             @RequestBody ChunkedUploadInitRequest request,
             @AuthenticationPrincipal UserPrincipal user) {
-        
+
         String uploadId = UUID.randomUUID().toString();
         int totalChunks = (int) Math.ceil((double) request.getFileSize() / CHUNK_SIZE);
-        
+
         ChunkedUploadSession session = new ChunkedUploadSession(
             uploadId,
             request.getFilename(),
@@ -272,12 +272,12 @@ public class ChunkedUploadController {
             user.getId(),
             user.getUsername()
         );
-        
+
         sessions.put(uploadId, session);
-        
+
         return ResponseEntity.ok(new ChunkedUploadInitResponse(
-            uploadId, 
-            totalChunks, 
+            uploadId,
+            totalChunks,
             CHUNK_SIZE
         ));
     }
@@ -288,19 +288,19 @@ public class ChunkedUploadController {
             @PathVariable String uploadId,
             @PathVariable int chunkIndex,
             @RequestParam("chunk") MultipartFile chunk) {
-        
+
         ChunkedUploadSession session = sessions.get(uploadId);
         if (session == null) {
             return ResponseEntity.notFound().build();
         }
-        
+
         // Save chunk to temp storage
         Path chunkPath = tempDir.resolve(uploadId).resolve("chunk-" + chunkIndex);
         Files.createDirectories(chunkPath.getParent());
         chunk.transferTo(chunkPath);
-        
+
         session.markChunkComplete(chunkIndex);
-        
+
         return ResponseEntity.ok(new ChunkUploadResponse(
             chunkIndex,
             session.getCompletedChunks(),
@@ -313,34 +313,34 @@ public class ChunkedUploadController {
     public ResponseEntity<DocumentDTO> completeUpload(
             @PathVariable String uploadId,
             @RequestBody ChunkedUploadCompleteRequest request) {
-        
+
         ChunkedUploadSession session = sessions.get(uploadId);
         if (session == null || !session.isComplete()) {
             return ResponseEntity.badRequest().build();
         }
-        
+
         // Assemble chunks and upload to MinIO
         String storageKey = assembleAndUpload(session);
-        
+
         // Create metadata record
         Document document = createDocument(session, storageKey, request);
-        
+
         // Cleanup
         cleanupTempFiles(uploadId);
         sessions.remove(uploadId);
-        
+
         return ResponseEntity.status(HttpStatus.CREATED).body(toDTO(document));
     }
 
     @GetMapping("/{uploadId}/status")
     public ResponseEntity<ChunkedUploadStatusResponse> getStatus(
             @PathVariable String uploadId) {
-        
+
         ChunkedUploadSession session = sessions.get(uploadId);
         if (session == null) {
             return ResponseEntity.notFound().build();
         }
-        
+
         return ResponseEntity.ok(new ChunkedUploadStatusResponse(
             session.getCompletedChunks(),
             session.getTotalChunks(),
@@ -355,7 +355,7 @@ public class ChunkedUploadController {
 ```javascript
 async function uploadLargeFileChunked(file, tags, description) {
     const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks
-    
+
     // Step 1: Initialize upload
     const initResponse = await fetch('/api/documents/chunked/init', {
         method: 'POST',
@@ -376,16 +376,16 @@ async function uploadLargeFileChunked(file, tags, description) {
         const start = i * CHUNK_SIZE;
         const end = Math.min(start + CHUNK_SIZE, file.size);
         const chunk = file.slice(start, end);
-        
+
         const formData = new FormData();
         formData.append('chunk', chunk);
-        
+
         await fetch(`/api/documents/chunked/${uploadId}/chunk/${i}`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${token}` },
             body: formData
         });
-        
+
         // Update progress: ((i + 1) / totalChunks * 100)%
     }
 
@@ -398,7 +398,7 @@ async function uploadLargeFileChunked(file, tags, description) {
         },
         body: JSON.stringify({ tags, description })
     });
-    
+
     return await completeResponse.json();
 }
 ```
@@ -540,14 +540,14 @@ public class DocumentController {
 public class StorageService {
 
     private final MinioClient minioClient;
-    
+
     // Use larger part size for better throughput with large files
     private static final long PART_SIZE = 50 * 1024 * 1024; // 50MB parts
 
-    public String uploadFile(InputStream inputStream, String contentType, 
+    public String uploadFile(InputStream inputStream, String contentType,
                             long size, String originalFilename) {
         String storageKey = generateStorageKey(originalFilename);
-        
+
         try {
             minioClient.putObject(
                 PutObjectArgs.builder()
@@ -688,7 +688,25 @@ If you have:
 
 ## References
 
-- [MinIO Presigned URLs Documentation](https://min.io/docs/minio/linux/developers/java/API.html#getPresignedObjectUrl)
-- [AWS S3 Multipart Upload](https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html)
-- [Spring Boot File Upload Best Practices](https://spring.io/guides/gs/uploading-files/)
-- [Tomcat Performance Tuning](https://tomcat.apache.org/tomcat-10.0-doc/config/http.html)
+### S3-Compatible Storage Providers
+
+- [MinIO Presigned URLs Documentation](https://min.io/docs/minio/linux/developers/java/API.html#getPresignedObjectUrl) - Official MinIO Java SDK documentation for generating presigned URLs
+- [PUSHR Sonic S3 API Compatibility](https://pushr.io/knowledgebase/sonic-s3-api-compatibility/) - Sonic S3-compatible object storage API reference, supports presigned URLs via standard S3 SDK
+- [PUSHR Sonic with Node.js](https://pushr.io/knowledgebase/use-sonic-object-storage-with-nodejs/) - Using Sonic S3 storage with AWS SDK for JavaScript/Node.js
+
+### AWS S3 Documentation
+
+- [AWS S3 Presigned URLs Overview](https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-presigned-url.html) - Comprehensive guide on presigned URL concepts and usage
+- [AWS S3 Uploading with Presigned URLs](https://docs.aws.amazon.com/AmazonS3/latest/userguide/PresignedUrlUploadObject.html) - Detailed documentation for upload presigned URLs
+- [AWS S3 Multipart Upload](https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html) - Multipart upload for large files (5GB+)
+- [AWS SDK for Java S3Presigner](https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/presigner/S3Presigner.html) - Java SDK presigner API reference
+
+### Spring Boot & Server Configuration
+
+- [Spring Boot File Upload Best Practices](https://spring.io/guides/gs/uploading-files/) - Official Spring guide for file uploads
+- [Tomcat Performance Tuning](https://tomcat.apache.org/tomcat-10.0-doc/config/http.html) - Tomcat HTTP connector configuration
+
+### Additional Resources
+
+- [S3 Uploads: Proxies vs Presigned URLs vs Presigned POSTs](https://zaccharles.medium.com/s3-uploads-proxies-vs-presigned-urls-vs-presigned-posts-9661e2b37932) - Detailed comparison of S3 upload strategies
+- [Securing S3 Presigned URLs for Serverless Applications](https://aws.amazon.com/blogs/compute/securing-amazon-s3-presigned-urls-for-serverless-applications) - AWS best practices for secure presigned URL implementation

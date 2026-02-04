@@ -1,0 +1,221 @@
+<mxfile host="app.diagrams.net" modified="2026-02-04T22:17:00.000Z" agent="Mozilla/5.0" version="22.1.0" type="device">
+  <diagram name="Document Repository Architecture" id="architecture-main">
+    <mxGraphModel dx="1434" dy="780" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Title -->
+        <mxCell id="title" value="Document Repository - System Architecture" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="500" y="20" width="600" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Client Layer -->
+        <mxCell id="client-group" value="Client Layer" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="1520" height="120" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="web-client" value="Web Browser&#xa;(React/Angular)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12" vertex="1" parent="client-group">
+          <mxGeometry x="100" y="30" width="120" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="mobile-client" value="Mobile App&#xa;(iOS/Android)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12" vertex="1" parent="client-group">
+          <mxGeometry x="260" y="30" width="120" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="api-client" value="API Client&#xa;(curl/Postman)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12" vertex="1" parent="client-group">
+          <mxGeometry x="420" y="30" width="120" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="swagger-ui" value="Swagger UI&#xa;/swagger-ui.html" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12" vertex="1" parent="client-group">
+          <mxGeometry x="580" y="30" width="120" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- API Gateway / Load Balancer -->
+        <mxCell id="lb-group" value="Load Balancer / API Gateway" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="220" width="1520" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="nginx" value="NGINX / AWS ALB&#xa;(SSL Termination, Rate Limiting)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12" vertex="1" parent="lb-group">
+          <mxGeometry x="600" y="15" width="300" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- Spring Boot Application -->
+        <mxCell id="app-group" value="Spring Boot Application (Port 8080)" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;fillColor=#d4edda;strokeColor=#28a745;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="320" width="1520" height="340" as="geometry" />
+        </mxCell>
+        
+        <!-- Security Layer -->
+        <mxCell id="security-box" value="Security Layer" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;fontStyle=1" vertex="1" parent="app-group">
+          <mxGeometry x="40" y="30" width="200" height="130" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="jwt-filter" value="JWT Authentication&#xa;Filter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff;strokeColor=#b85450;fontSize=11" vertex="1" parent="security-box">
+          <mxGeometry x="20" y="30" width="160" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="security-config" value="SecurityConfig&#xa;(RBAC)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff;strokeColor=#b85450;fontSize=11" vertex="1" parent="security-box">
+          <mxGeometry x="20" y="80" width="160" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Controllers -->
+        <mxCell id="controllers-box" value="REST Controllers" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontStyle=1" vertex="1" parent="app-group">
+          <mxGeometry x="260" y="30" width="480" height="130" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="doc-controller-v1" value="DocumentController&#xa;/api/documents&#xa;(V1 - Standard)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff;strokeColor=#6c8ebf;fontSize=10" vertex="1" parent="controllers-box">
+          <mxGeometry x="10" y="30" width="110" height="90" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="doc-controller-v2" value="DocumentControllerV2&#xa;/api/v2/documents&#xa;(Chunked Upload)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff;strokeColor=#6c8ebf;fontSize=10" vertex="1" parent="controllers-box">
+          <mxGeometry x="125" y="30" width="110" height="90" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="doc-controller-v3" value="DocumentControllerV3&#xa;/api/v3/documents&#xa;(Enhanced Streaming)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff;strokeColor=#6c8ebf;fontSize=10" vertex="1" parent="controllers-box">
+          <mxGeometry x="240" y="30" width="110" height="90" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="auth-controller" value="AuthController&#xa;/api/auth&#xa;(Login/Register)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff;strokeColor=#6c8ebf;fontSize=10" vertex="1" parent="controllers-box">
+          <mxGeometry x="355" y="30" width="110" height="90" as="geometry" />
+        </mxCell>
+        
+        <!-- Services -->
+        <mxCell id="services-box" value="Service Layer" style="swimlane;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1" vertex="1" parent="app-group">
+          <mxGeometry x="260" y="180" width="480" height="140" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="doc-service" value="DocumentService&#xa;(CRUD, Search)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff;strokeColor=#d6b656;fontSize=11" vertex="1" parent="services-box">
+          <mxGeometry x="10" y="30" width="110" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="storage-service" value="StorageService&#xa;(MinIO Client)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff;strokeColor=#d6b656;fontSize=11" vertex="1" parent="services-box">
+          <mxGeometry x="125" y="30" width="110" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="chunked-service" value="ChunkedUpload&#xa;Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff;strokeColor=#d6b656;fontSize=11" vertex="1" parent="services-box">
+          <mxGeometry x="240" y="30" width="110" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="auth-service" value="AuthService&#xa;(JWT, BCrypt)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff;strokeColor=#d6b656;fontSize=11" vertex="1" parent="services-box">
+          <mxGeometry x="355" y="30" width="110" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="user-service" value="UserService" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff;strokeColor=#d6b656;fontSize=11" vertex="1" parent="services-box">
+          <mxGeometry x="10" y="85" width="110" height="45" as="geometry" />
+        </mxCell>
+        
+        <!-- Cache -->
+        <mxCell id="cache-box" value="Cache Layer" style="swimlane;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontStyle=1" vertex="1" parent="app-group">
+          <mxGeometry x="760" y="30" width="160" height="130" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="caffeine" value="Caffeine Cache&#xa;(1000 entries)&#xa;(10 min TTL)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff;strokeColor=#9673a6;fontSize=11" vertex="1" parent="cache-box">
+          <mxGeometry x="15" y="35" width="130" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Config -->
+        <mxCell id="config-box" value="Configuration" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;fontStyle=1" vertex="1" parent="app-group">
+          <mxGeometry x="760" y="180" width="160" height="140" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="minio-config" value="MinioConfig" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff;strokeColor=#666666;fontSize=10" vertex="1" parent="config-box">
+          <mxGeometry x="15" y="30" width="130" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="security-cfg" value="SecurityConfig" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff;strokeColor=#666666;fontSize=10" vertex="1" parent="config-box">
+          <mxGeometry x="15" y="65" width="130" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="openapi-config" value="OpenApiConfig" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff;strokeColor=#666666;fontSize=10" vertex="1" parent="config-box">
+          <mxGeometry x="15" y="100" width="130" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Temp Storage -->
+        <mxCell id="temp-box" value="Temp Storage" style="swimlane;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;fontStyle=1" vertex="1" parent="app-group">
+          <mxGeometry x="940" y="30" width="160" height="130" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="chunk-storage" value="Chunked Upload&#xa;Temp Directory&#xa;(/tmp/chunked-uploads)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff;strokeColor=#d79b00;fontSize=10" vertex="1" parent="temp-box">
+          <mxGeometry x="10" y="35" width="140" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Data Layer -->
+        <mxCell id="data-group" value="Data Layer" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;fillColor=#e6f2ff;strokeColor=#0066cc;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="680" width="1520" height="160" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="mongodb" value="MongoDB&#xa;(Metadata Storage)&#xa;&#xa;- Documents collection&#xa;- Users collection&#xa;- Indexes on ownerId, tags" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11" vertex="1" parent="data-group">
+          <mxGeometry x="200" y="20" width="180" height="120" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="minio" value="MinIO / S3&#xa;(Object Storage)&#xa;&#xa;- documents bucket&#xa;- Streaming I/O&#xa;- Presigned URLs" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11" vertex="1" parent="data-group">
+          <mxGeometry x="500" y="20" width="180" height="120" as="geometry" />
+        </mxCell>
+        
+        <!-- Arrows / Connections -->
+        <mxCell id="arrow1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666" edge="1" parent="1" source="web-client" target="nginx">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="200" y="200" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arrow2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666" edge="1" parent="1" source="nginx" target="jwt-filter">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="750" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arrow3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#0066cc" edge="1" parent="1" source="doc-service" target="mongodb">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arrow4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#0066cc" edge="1" parent="1" source="storage-service" target="minio">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Legend -->
+        <mxCell id="legend-box" value="Legend" style="swimlane;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1200" y="700" width="340" height="130" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend1" value="V1: Standard Upload/Download" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10" vertex="1" parent="legend-box">
+          <mxGeometry x="10" y="30" width="150" height="25" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend2" value="V2: Chunked Upload (Resume)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10" vertex="1" parent="legend-box">
+          <mxGeometry x="170" y="30" width="160" height="25" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend3" value="V3: Enhanced Streaming" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10" vertex="1" parent="legend-box">
+          <mxGeometry x="10" y="60" width="150" height="25" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend4" value="Max File: 1GB | Chunk: 10MB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10" vertex="1" parent="legend-box">
+          <mxGeometry x="170" y="60" width="160" height="25" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend5" value="Tomcat: 500 threads | Cache: 1000 entries" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10" vertex="1" parent="legend-box">
+          <mxGeometry x="10" y="90" width="320" height="25" as="geometry" />
+        </mxCell>
+        
+        <!-- Roles Box -->
+        <mxCell id="roles-box" value="RBAC Roles" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1200" y="80" width="340" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="role-admin" value="ADMIN: Full access + User management" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11" vertex="1" parent="roles-box">
+          <mxGeometry x="10" y="25" width="320" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="role-editor" value="EDITOR: Upload, view, update, delete own docs" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11" vertex="1" parent="roles-box">
+          <mxGeometry x="10" y="50" width="320" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="role-viewer" value="VIEWER: View and download only" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11" vertex="1" parent="roles-box">
+          <mxGeometry x="10" y="75" width="320" height="20" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
